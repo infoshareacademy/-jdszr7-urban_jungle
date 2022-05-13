@@ -126,9 +126,9 @@ select
 	overall_rating_per_season.season,
 	overall_rating_per_season.team_long_name,
 	ROUND(overall_rating_per_season.team_avg_rating,2) avg_team_rating_pro_season,
-	lag(ROUND(overall_rating_per_season.team_avg_rating,2),1) over (order by overall_rating_per_season.league_name, overall_rating_per_season.team_long_name, overall_rating_per_season.season) last_season_rating,
+	lag(ROUND(overall_rating_per_season.team_avg_rating,2),1) over (partition by league_name, overall_rating_per_season.team_long_name order by overall_rating_per_season.season) last_season_rating,
 	home_team_points_in_season + away_team_points_in_season points_in_season,
-	lag(home_team_points_in_season + away_team_points_in_season, 1) over (order by overall_rating_per_season.league_name, overall_rating_per_season.team_long_name, overall_rating_per_season.season) points_in_last_season
+	lag(home_team_points_in_season + away_team_points_in_season, 1) over (partition by league_name, overall_rating_per_season.team_long_name order by overall_rating_per_season.season) points_in_last_season
 from overall_rating_per_season
 join home_team_season_points on home_team_season_points.home_team_api_id = overall_rating_per_season.team_api_id and home_team_season_points.season = overall_rating_per_season.season
 join away_team_season_points on away_team_season_points.away_team_api_id = overall_rating_per_season.team_api_id and away_team_season_points.season = overall_rating_per_season.season
