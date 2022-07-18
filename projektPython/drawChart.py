@@ -1,18 +1,31 @@
 # Script for generating charts based on pandas dataframe
 
-from turtle import color
 import pandas as pd
-import seaborn as sns
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-__education2description = {1: 'podstawówka', 2: 'level2', 3: 'level3', 4: 'level4', 5: 'level5'}
+#matplotlib settings
+plt.style.use('fivethirtyeight')
+plt.rcParams.update({'figure.autolayout': True})
+font = {'family' : 'DejaVu Sans',
+        'weight' : 'bold',
+        'size'   : 22}
+
+matplotlib.rc('font', **font)
+
+__education2description = {1: 'Below College', 2: 'College', 3: 'Bachelor', 4: 'Master', 5: 'Doctor'}
+__colors_dict =['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+__figSize = (25,11)
+__axis_font_size=45
+__labelpad=15
+__linewidth=3
+__scatter_point_size=700
 
 def drawGroupByAndCount(df: pd.DataFrame, column_names, column_values = None) -> pd.DataFrame:
 
     if column_values:
         whereStatement = ' & '.join([f"{kolumn_name} == \"{kolumn_value}\"" for kolumn_name, kolumn_value in zip(column_names, column_values)])
-        print(whereStatement)
         return df.groupby(list(column_names))[column_names[-1]].agg(['count']).query(whereStatement)
     else:
         return df.groupby(list(column_names))[column_names[-1]].agg(['count'])
@@ -27,38 +40,53 @@ def drawFeatureOverTime(df: pd.DataFrame, x: str, y: str):
     leg = ax.legend()
     
 def drawPyplot(filteredData):
-    fig, ax = plt.subplots(figsize=(24,12))
-    size = 0.3
+    fig, ax = plt.subplots(1,2 ,figsize=__figSize)
+    size = 1
     
-    innerUnique = filteredData['Education'].unique()
-    innerCounts = filteredData['Education'].value_counts()
-    texts_inner, autotexts_inner = ax.pie(innerCounts, radius=size, 
-       labels = innerUnique,
-       wedgeprops=dict(width=size, edgecolor='w'))
+    educationUnique = filteredData['Education'].unique()
+    educationCounts = filteredData['Education'].value_counts()
+    ax[0].pie(educationCounts, radius=size, 
+       labels = [__education2description[e] for e in educationUnique],
+       wedgeprops=dict(width=size, edgecolor='w'), autopct='%1.1f%%')
+    ax[0].set_title("Education Level")
     
-    outerUnique = filteredData.groupby(['EducationField', 'Education']).size().index
-    outerCounts = filteredData.groupby(['EducationField', 'Education']).size()
-    ax.pie(outerCounts, radius=1-size,
-       labels=[index[0] for index in outerUnique],
-       autopct='%1.1f%%',
-       wedgeprops=dict(width=size, edgecolor='w'))
+    educationFieldUnique = filteredData['EducationField'].unique()
+    educationFieldCounts = filteredData['EducationField'].value_counts()
+    ax[1].pie(educationFieldCounts, radius=size,
+       labels= educationFieldUnique,
+       wedgeprops=dict(width=size, edgecolor='w'), autopct='%1.1f%%')
+    ax[1].set_title("Education Field")
     
-    ax.legend([__education2description[level] for level in innerUnique],
-          title="Eductaion level",
-          loc="center left",
-          bbox_to_anchor=(1, 0, 2, 1))
-
-    ax.set(aspect="equal", title='Pie plot with `ax.pie`')
     plt.show()
 
-def drawHistogramWithYourPosition(filtered_data: pd.DataFrame, column_name: str, your_salary= None, number_of_bins=10):
-    plt.hist(filtered_data[column_name], bins = number_of_bins, facecolor='blue', alpha=0.5, ec='black')
-    if your_salary:
-        plt.axvline(your_salary, color='r')
-        plt.legend(["Your Montly income", "Histogram"])
-    else:
-        plt.legend(["foo"])
+def drawHistogramWithYourPosition(filtered_data: pd.DataFrame, column_name: str, your_salary= 0, number_of_bins=10):
+    fig, ax = plt.subplots(figsize=__figSize)
+    ax.hist(filtered_data[column_name], bins = number_of_bins, facecolor='blue', alpha=0.5, ec='black', linewidth=__linewidth)
+    if your_salary > 0:
+        plt.axvline(your_salary, color='r', ls='--', linewidth=__linewidth+3)
+        plt.legend(["Your Monthly Income"])
+
+    set_x_y_label(ax, 'Monthly Income', 'Number of employees')
+    ax.set_title("Monthly Income histogram", fontsize=__axis_font_size)
     plt.show()
+    
+def drawScatterPlot(x_data, y_data, color_data):
+    fig, ax = plt.subplots(figsize=__figSize)
+    for (color_number,color) in enumerate(color_data.unique()):
+        drawSingleColorScatterPlot(x_data[color_data == color], y_data[color_data == color], color, ax, color_number)
+        
+    set_x_y_label(ax, x_data.name, y_data.name)
+    ax.set_title(f"{x_data.name} to {y_data.name} scatter plot", fontsize=__axis_font_size)
+    ax.legend(title=color_data.name ,loc='lower right')
+    plt.show()
+    
+def drawSingleColorScatterPlot(x_data, y_data, color, ax, color_number):
+    scatter = ax.scatter(x_data, y_data, s=__scatter_point_size, c=__colors_dict[color_number], alpha=0.5, ec='black', label=color)
+    
+def set_x_y_label(ax, x_title, y_title):
+    ax.set_xlabel(x_title, fontsize=__axis_font_size, labelpad=__labelpad)
+    ax.set_ylabel(y_title, fontsize=__axis_font_size, labelpad=__labelpad);
+
     
 
 
