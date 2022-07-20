@@ -17,7 +17,7 @@ matplotlib.rc('font', **font)
 __education2description = {1: 'Below College', 2: 'College', 3: 'Bachelor', 4: 'Master', 5: 'Doctor'}
 __colors_dict =['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 __figSize = (25,11)
-__axis_font_size=45
+__axis_font_size=35
 __labelpad=15
 __linewidth=3
 __scatter_point_size=700

@@ -4,15 +4,20 @@ import drawChart as dc
 import ipywidgets as widgets
 
 def getByDepartmentJobRoleLevelAndMonthlyIncome(data: pd.DataFrame, department, job_role, monthly_income=0):
-    return data.loc[(data['Department'] == department) & (data['JobRole'] == job_role) & (data['MonthlyIncome'] >= monthly_income)]
+    return data.loc[(data['Department'] == department) & (data['JobRole'] == job_role) & (data['MonthlyIncome'] > monthly_income)]
 
 def prepareReport(data: pd.DataFrame, user_department, user_job_role, user_monthly_income):
 
     dc.drawHistogramWithYourPosition(getByDepartmentJobRoleLevelAndMonthlyIncome(data, user_department, user_job_role, 0), "MonthlyIncome", user_monthly_income)
+    displayHistogramInfo(data)
     
     filteredData = getByDepartmentJobRoleLevelAndMonthlyIncome(data, user_department, user_job_role, user_monthly_income)
+
     dc.drawPyplot(filteredData)
     dc.drawScatterPlot(filteredData['TotalWorkingYears'], filteredData['MonthlyIncome'], filteredData['JobLevel'])
+    
+def displayHistogramInfo(data):
+    print(f"Monthly income of coworkers at the same department and having the same ... is {data['MonthlyIncome'].mean()}")
     
 def prepare_widgets(data, trigger_function):
     
