@@ -77,7 +77,11 @@ where m.home_player_1 is not null
 	and m.away_player_11 is not null;
 
 
+create table if not exists season_summary(league_name text, season text, team_long_name text, avg_team_rating_pro_season numeric, last_season_rating numeric, points_in_season integer, points_in_last_season integer);
 
+insert into season_summary
+select league_name, season, team_long_name, avg_team_rating_pro_season, last_season_rating, points_in_season, points_in_last_season
+from(
 with overall_rating_per_season as
 (
 select
@@ -132,5 +136,23 @@ select
 from overall_rating_per_season
 join home_team_season_points on home_team_season_points.home_team_api_id = overall_rating_per_season.team_api_id and home_team_season_points.season = overall_rating_per_season.season
 join away_team_season_points on away_team_season_points.away_team_api_id = overall_rating_per_season.team_api_id and away_team_season_points.season = overall_rating_per_season.season
-order by overall_rating_per_season.league_name, overall_rating_per_season.team_long_name, overall_rating_per_season.season;
+order by overall_rating_per_season.league_name, overall_rating_per_season.team_long_name, overall_rating_per_season.season);
+
+select "rating_increases_points_increases" as "result", count(*) as liczba_rezultatow
+from season_summary ss
+where avg_team_rating_pro_season > ss.last_season_rating and points_in_season > points_in_last_season
+UNION 
+select "rating_increases_points_decreases" as "result", count(*) as liczba_rezultatow
+from season_summary ss
+where avg_team_rating_pro_season > ss.last_season_rating and points_in_season < points_in_last_season
+UNION
+select "rating_decreases_points_increases" as "result", count(*) as liczba_rezultatow
+from season_summary ss
+where avg_team_rating_pro_season < ss.last_season_rating and points_in_season > points_in_last_season
+UNION
+select "rating_decreases_points_decreases" as "result", count(*) as liczba_rezultatow
+from season_summary ss
+where avg_team_rating_pro_season < ss.last_season_rating and points_in_season < points_in_last_season
+
+
 
